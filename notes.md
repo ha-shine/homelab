@@ -15,6 +15,7 @@
 
 ## Change log
 
-|    date    | change                           |
-|------------|----------------------------------|
-| 2026-04-11 | Setup k8s cluster with two nodes |
+|    date    | change                                      |
+|------------|---------------------------------------------|
+| 2026-04-11 | Setup k8s cluster with two nodes            |
+| 2026-04-12 | Installed tailscale operator in the cluster |

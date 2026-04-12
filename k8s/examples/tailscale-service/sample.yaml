@@ -1,0 +1,36 @@
+# Create an ingress that exposes workload to tailnet
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:stable
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+  annotations:
+    tailscale.com/hostname: example-nginx # Machine name in the tailnet
+spec:
+  type: LoadBalancer
+  loadBalancerClass: tailscale
+  selector:
+    app: nginx
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
