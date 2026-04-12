@@ -1,0 +1,135 @@
+# Beszel hub pinned to apollo-1 with dedicated local storage.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: beszel-data-pv
+spec:
+  capacity:
+    storage: 10Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  local:
+    path: /var/lib/k8s/volumes/beszel
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - apollo-1
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: beszel-data
+spec:
+  storageClassName: local-storage
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  volumeName: beszel-data-pv
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: beszel
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: beszel
+  template:
+    metadata:
+      labels:
+        app: beszel
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values:
+                      - apollo-1
+      containers:
+        - name: beszel
+          image: henrygd/beszel:0.18
+          ports:
+            - containerPort: 8090
+              name: http
+          volumeMounts:
+            - name: beszel-data
+              mountPath: /beszel_data
+      volumes:
+        - name: beszel-data
+          persistentVolumeClaim:
+            claimName: beszel-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: beszel
+  annotations:
+    tailscale.com/hostname: beszel
+spec:
+  type: LoadBalancer
+  loadBalancerClass: tailscale
+  selector:
+    app: beszel
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8090
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: beszel-agent
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: beszel-agent
+  template:
+    metadata:
+      labels:
+        app: beszel-agent
+    spec:
+      hostNetwork: true
+      containers:
+        - env:
+            - name: LISTEN
+              value: "45876"
+            - name: HUB_URL
+              value: "beszel.default.svc.cluster.local"
+            - name: KEY
+              value: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINaXowblLyTlMXdgwngppxy+P6OVUs/yJfkDYyl9rvLy"
+            - name: TOKEN
+              value: "04d8d286-c857-46f6-8883-ebc503499591"
+          image: henrygd/beszel-agent:0.18
+          imagePullPolicy: Always
+          name: beszel-agent
+          ports:
+            - containerPort: 45876
+              hostPort: 45876
+      restartPolicy: Always
+      dnsPolicy: ClusterFirstWithHostNet
+      tolerations:
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/master
+          operator: Exists
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/control-plane
+          operator: Exists
+  updateStrategy:
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 100%
+    type: RollingUpdate
