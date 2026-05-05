@@ -2,6 +2,7 @@
 
 - Using k3s for k8s cluster, `apollo-1` being the master
 - VictoriaMetrics and Grafana for monitoring, installed using `victoria-metrics-k8s-stack` and operator separately
+- Hermes agent is installed on `apollo-2`; the Nextclinic support ops agent named `sam` runs on GPT 5.5 with the `front-cli` skill for Front knowledge base access
 
 ## K3 Notes
 
@@ -24,6 +25,7 @@
 
 |    date    | change                                         |
 |------------|------------------------------------------------|
+| 2026-05-06 | Installed Hermes agent on `apollo-2` and configured `sam` support ops agent with GPT 5.5 and `front-cli` |
 | 2026-04-13 | Replace beszel with VictoriMetrics and Grafana |
 | 2026-04-13 | Installed beszel hub and agent in the cluster  |
 | 2026-04-12 | Installed tailscale operator in the cluster    |
