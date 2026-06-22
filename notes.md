@@ -3,6 +3,7 @@
 - Using k3s for k8s cluster, `apollo-1` being the master
 - VictoriaMetrics and Grafana for monitoring, installed using `victoria-metrics-k8s-stack` and operator separately
 - Hermes agent is installed on `apollo-2`; the Nextclinic support ops agent named `sam` runs on GPT 5.5 with the `front-cli` skill for Front knowledge base access
+- PostgreSQL database named `atlas` as a scratchpad
 
 ## K3 Notes
 

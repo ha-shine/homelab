@@ -1,0 +1,12 @@
+# Values file for bitnami/postgresql helm
+defaultStorageClass: "local-path"
+
+auth:
+  existingSecret: "atlas-pg-secret"
+
+primary:
+  persistence:
+    size: 10Gi
+
+passwordUpdateJob:
+  enabled: true
