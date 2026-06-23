@@ -1,0 +1,26 @@
+# Values file for bitnami/postgresql helm
+defaultStorageClass: local-path
+
+global:
+  defaultStorageClass: local-path
+
+fullnameOverride: temporal-postgresql
+
+auth:
+  database: temporal
+  username: temporal
+  existingSecret: temporal-postgresql-secret
+  secretKeys:
+    adminPasswordKey: postgres-password
+    userPasswordKey: password
+
+primary:
+  persistence:
+    size: 20Gi
+  initdb:
+    scripts:
+      01-temporal-visibility.sql: |
+        CREATE DATABASE temporal_visibility OWNER temporal;
+
+passwordUpdateJob:
+  enabled: true
